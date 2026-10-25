@@ -1,120 +1,185 @@
-# Fly-Brain Simulation: Initial Experiments
+# FlyBrain-Controlled Robot Project — Code File Summary
 
-## Objective
+## 1. Project Overview
 
-Explore the `flybrain` simulation, understand how selected neuron groups respond to stimulation, and investigate whether neural activity could eventually be used to generate movement commands for a fruit-fly-inspired drone.
+My project involves using an open-source fruit fly brain simulation (FlyBrain) to control a physical robot. The goal is to explore whether neural activity from the simulated fly brain can be used to make movement decisions based on sensor inputs.
 
-## Experiment 1 — Load the brain model
+I am using an ESP32 microcontroller to read physical sensors and control the motors, while my laptop runs Python and the FlyBrain simulation. The laptop and ESP32 communicate through a USB serial connection.
 
-**Purpose:** Confirm that the fly-brain model loads successfully.
+My planned hardware inputs include an ultrasonic distance sensor and two infrared (IR) obstacle sensors. The ultrasonic sensor measures the distance to an obstacle, while the IR sensors provide additional information about obstacles on the left and right sides.
 
-**Procedure:** Loaded the model using `FlyBrain(device="auto")`.
+The overall system is intended to work as follows:
 
-**Results:**
-- 166,700 neurons
-- 25,582,938 connections
-- Running on CPU
+1. The ESP32 reads the ultrasonic and IR sensors.
+2. The ESP32 sends the sensor readings to my laptop through USB serial.
+3. A Python program receives the readings and converts them into inputs for the FlyBrain simulation.
+4. The simulation produces neural activity that I can use to help determine the robot's movement.
+5. Python sends a movement command back to the ESP32.
+6. The ESP32 controls the motor driver to move or stop the robot.
 
-**Conclusion:** The model loaded successfully on the MacBook. GPU acceleration was not required for these initial experiments.
+This is an experimental mapping between physical sensors and a simulated biological neural network. The mapping is an engineering approximation rather than a biologically validated representation of how a fly processes these sensors.
 
-## Experiment 2 — Explore neuron categories
+## 2. Existing Files
 
-**Purpose:** Understand the types of neurons represented in the model.
+### jupitern.ipynb
 
-**Procedure:** Inspected the counts of different neuron categories.
+This is my main Jupyter Notebook for exploring and experimenting with the FlyBrain simulation.
 
-**Results:** The largest categories included:
-- `ol_intrinsic`: 89,403
-- `cb_intrinsic`: 32,164
-- `vnc_intrinsic`: 13,161
-- `visual_projection`: 9,201
-- `descending_neuron`: 1,314
-- `vnc_motor`: 708
+It contains 22 notebook experiments, including five earlier experiments that were already present before I added my own tests. The notebook is where I explore the neural network, inspect neuron populations, apply stimuli, and observe changes in neural activity.
 
-**Conclusion:** The model contains multiple neuron groups involved in sensory processing, communication between brain regions, and movement-related pathways.
+The experiments help me understand how the simulated brain responds to inputs and which neuron populations might be useful for controlling robot movement.
 
-## Experiment 3 — Stimulate left looming detectors
+The notebook also contains experiments involving left- and right-side visual pathways, stimulus strength, and directional responses. I have explored activity in LC10a and DNa02 neuron populations and investigated looming-related responses.
 
-**Purpose:** Investigate neural activity after simulating detection of an approaching object on the left.
+I need to refer to the actual notebook cells to document the exact purpose and results of all 22 experiments individually.
 
-**Procedure:** Stimulated 165 neurons associated with left-side looming detection and observed the activity of the left and right DNp01 neurons over time.
+### test_neurons.py -> havent added to github yet
 
-**Results:** A spike plot displayed firing events across the simulation period. The observed spike patterns differed between the two sides.
+This file is used to investigate selected neuron populations in the FlyBrain simulation.
 
-**Conclusion:** The experiment demonstrated how neural firing can be visualized over time. Further controlled tests are needed to establish how consistently the left and right DNp01 neurons respond to the stimulus.
+It helps me check whether particular neurons can be located and inspected, and it can be used to investigate their activity under different conditions.
 
-## Experiment 4 — Visualize activity in the network
+This is useful for identifying candidate neurons that could help distinguish between different stimuli or movement directions.
 
-**Purpose:** Explore the spatial distribution of neurons associated with the left looming-detector stimulus.
+### test_escape.py -> havent added to github yet
 
-**Procedure:** Viewed a 3D-looking visualization generated by the notebook.
+This file explores a looming-related stimulus and investigates whether it produces activity in neurons associated with escape-related responses.
 
-**Results:** The visualization reported 4,267 neurons driven by the left looming detectors and displayed a grey cloud with red dots.
+In an earlier experiment, the DNp01 neuron population did not produce any spikes under the tested conditions. This does not necessarily mean that the pathway cannot respond; the stimulus parameters, neuron selection, or simulation setup may need further investigation.
 
-**Conclusion:** The notebook provided a spatial view of the network associated with the stimulus. The exact meaning of the highlighted neurons depends on the visualization's implementation; the count alone does not establish that all 4,267 neurons fired.
+The purpose of this test is to better understand the relationship between the input stimulus and the resulting neural activity.
 
-## Experiment 5 — Compare baseline and chase-related activity
+## 3. Planned Main Program Files
 
-**Purpose:** Examine how left LC10a stimulation relates to the firing rates of left and right DNa02 neurons.
+### esp32.ino
 
-**Procedure:** Compared the baseline (`rest`) condition with the stimulated (`chase`) condition.
+This will be the main Arduino C++ firmware running on the ESP32.
 
-**Results:**
+Its responsibilities will include:
+- Reading the ultrasonic distance sensor.
+- Reading the left and right IR sensors.
+- Sending sensor readings to the laptop through USB serial.
+- Receiving movement commands from Python.
+- Controlling the motors through the motor driver.
+- Stopping the motors when a safety condition is triggered or communication is lost.
 
-| Neuron | Rest (spikes/s) | Chase (spikes/s) |
-|---|---:|---:|
-| Left DNa02 | 1.1 | 4.5 |
-| Right DNa02 | 0.2 | 0.1 |
+The ESP32 will handle the physical hardware, while the laptop will handle the FlyBrain simulation and decision-making.
 
-**Conclusion:** In this demonstration, left DNa02 activity increased substantially during the chase condition, while right DNa02 activity remained low. This suggests a side-specific response in this particular experiment.
+### fly.py
 
-## Experiment 6 — Count LC10a and DNa02 neurons
+This will be the main Python controller running on my laptop.
 
-**Purpose:** Identify the neuron indices to use in a custom left-versus-right stimulation experiment.
+Its responsibilities will include:
+- Establishing serial communication with the ESP32.
+- Receiving and interpreting sensor readings.
+- Converting sensor information into an appropriate input for the FlyBrain simulation.
+- Running or updating the simulation.
+- Inspecting relevant neural activity.
+- Mapping the neural output to movement commands.
+- Sending movement commands back to the ESP32.
 
-**Procedure:** Used `brain.cells()` to find left and right LC10a and DNa02 neurons.
+The exact FlyBrain API calls still need to be verified against the installed package and the experiments in my notebook. The final implementation will depend on how the simulation accepts external inputs and exposes neural activity.
 
-**Results:**
+## 4. Testing Files
 
-| Neuron group | Number found |
-|---|---:|
-| Left LC10a | 135 |
-| Right LC10a | 140 |
-| Left DNa02 | 1 |
-| Right DNa02 | 1 |
+### sensor_interpretation_test.py
 
-**Conclusion:** The model returned neuron indices for both input groups and both monitored output neurons.
+This is a software-only Python test that checks how sensor readings are interpreted.
 
-## Experiment 7 — Custom left-versus-right stimulation
+It can simulate different sensor conditions without requiring the physical robot. For example, I can test whether an obstacle detected at a short distance causes the program to select a stop command.
 
-**Purpose:** Test whether stimulating different sides produces distinguishable DNa02 output activity.
+The current starter version uses simple rule-based logic to produce commands such as:
+- F: Move forward.
+- L: Turn left.
+- R: Turn right.
+- S: Stop.
 
-**Procedure:**
-- Reset the brain using seed 42.
-- Stimulated either the left or right LC10a neurons with an input amount of 0.8.
-- Advanced the simulation for 100 steps, equivalent to 2 seconds.
-- Counted recorded spikes in each DNa02 neuron.
-- Divided spike counts by the simulation duration to estimate firing rates.
+This test helps me check the basic decision-making logic before integrating the FlyBrain simulation. It does not test physical sensors or FlyBrain itself.
 
-**Results:**
+### laptop_to_esp.py
 
-| Stimulus | Left DNa02 (spikes/s) | Right DNa02 (spikes/s) |
-|---|---:|---:|
-| Left LC10a | 0.0 | 1.0 |
-| Right LC10a | 0.5 | 0.5 |
+This Python file tests serial communication between my laptop and the ESP32.
 
-**Conclusion:** The custom experiment did not produce a clear, opposite left/right response. The low spike counts and differences from the quickstart setup mean that the experiment should be refined before drawing conclusions about directional control.
+It is intended to help me:
+- Identify available serial ports.
+- Read messages sent by the ESP32.
+- Send simple movement commands to the ESP32.
+- Check whether the laptop and microcontroller can exchange data.
 
-## Overall findings
+This test requires the ESP32 to be connected and running compatible firmware. It does not independently test the physical sensors, FlyBrain, or the motors.
 
-The initial experiments established that the fly-brain model can be loaded, selected neuron groups can be stimulated, and neural activity can be visualized and measured.
+### esp_test.ino
 
-The quickstart chase experiment showed a stronger left DNa02 response under its left LC10a stimulation condition. However, the custom left-versus-right experiment did not reproduce a clear directional pattern.
+This is a simple ESP32 sketch for testing how incoming serial commands are received and interpreted.
 
-## Next steps
+It accepts commands such as F, L, R, and S and reports whether the command is valid. The starter version does not move the motors.
 
-1. Inspect the original quickstart code that generates the `rest` and `chase` firing-rate comparison.
-2. Reproduce its stimulation and recording procedure before modifying it.
-3. Compare left and right stimulation under consistent conditions, including baseline activity and repeated trials.
-4. Determine whether the output differences are reproducible.
-5. If a reliable signal is found, investigate how to map it to a high-level drone command while retaining a conventional flight controller for stabilization.
+This lets me test the command format and serial communication before allowing commands to control physical hardware.
+
+### sensor_test.ino
+
+This will be an Arduino C++ test sketch for the physical sensors.
+
+It will read the ultrasonic distance sensor and the left and right IR sensors, then print their readings to the Serial Monitor.
+
+This test helps me verify:
+- Whether the sensors are connected correctly.
+- Whether the ESP32 reads the expected pins.
+- Whether the ultrasonic sensor reports plausible distances.
+- Whether the IR sensors change state when obstacles are detected.
+
+Unlike test_sensor_logic.py, this test requires the physical sensors and ESP32.
+
+### motor_test.ino
+
+This will be an Arduino C++ test sketch for checking the motors and motor driver independently of FlyBrain.
+
+It will allow me to test whether each motor responds correctly to basic movement commands. I can use it to identify wiring problems, incorrect motor directions, or motor-driver issues before integrating the full system.
+
+The wheels should be lifted off the ground during initial testing. The motor supply, driver wiring, and common ground must be checked before powering the motors.
+
+## 5. Testing and Integration Sequence
+
+I plan to develop and test the project in stages so that I can identify problems without debugging the entire system at once.
+
+Step 1: Explore the FlyBrain simulation.
+Use quickstart.ipynb, test_neurons.py, and test_escape.py to understand the neural network and investigate potential movement-related neuron populations.
+
+Step 2: Test the basic sensor logic.
+Run test_sensor_logic.py on my laptop with simulated sensor values. Confirm that expected conditions produce the appropriate commands.
+
+Step 3: Test the ESP32 command parser.
+Upload test_command_parser.ino and verify that the ESP32 correctly receives commands over serial without moving the motors.
+
+Step 4: Test the physical sensors.
+Upload test_sensors.ino once the ESP32 and sensors are available. Verify the readings before integrating them with Python.
+
+Step 5: Test the motors.
+Use test_motors.ino to check the motor driver, motor directions, and basic movement commands. Test with the wheels lifted and keep the motor power disconnected while checking wiring.
+
+Step 6: Test serial communication.
+Use test_serial.py with compatible ESP32 firmware to verify that sensor messages can reach the laptop and commands can be sent back.
+
+Step 7: Integrate the FlyBrain simulation.
+Develop flybrain_robot.py to convert sensor information into simulation inputs, inspect neural responses, and map those responses to movement commands. Verify the input and output interfaces against the installed FlyBrain package.
+
+Step 8: Integrate the complete robot.
+Combine the sensor, serial, FlyBrain, and motor-control components. Test each part separately before allowing the full system to control the robot.
+
+Step 9: Evaluate and improve the system.
+Record sensor values, neural activity, and movement decisions. Compare the FlyBrain-controlled approach with a simple rule-based baseline to determine whether the neural simulation improves the robot's responses.
+
+## 6. Important Implementation Notes
+
+- The laptop runs Python and FlyBrain; the ESP32 runs Arduino C++.
+- USB serial is the communication link between the two.
+- The ESP32 GPIO pins are not 5 V tolerant. If my ultrasonic sensor uses a 5 V Echo output, I need an appropriate voltage divider or level shifter.
+- The motor driver needs an appropriate motor supply, and the ESP32 and motor-driver circuit need a common ground.
+- I need to check the exact wiring and whether the motor driver board requires its nSLEEP pin to be enabled.
+- The robot should have a reliable stop condition that does not depend entirely on FlyBrain's output.
+- The FlyBrain integration code is still a work in progress until I verify the installed package's actual input and output interfaces.
+- The physical sensor and motor tests cannot be completed until the relevant hardware is available, but the software-only logic test and FlyBrain notebook experiments can be developed in advance.
+
+## 7. Overall Goal
+
+My goal is to build a working prototype that connects a simulated biological neural network to a physical robot. By developing and testing each component separately, I can investigate how sensor inputs influence neural activity and whether that activity can be used to guide the robot's movement.
