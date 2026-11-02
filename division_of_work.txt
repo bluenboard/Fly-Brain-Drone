@@ -1,0 +1,3 @@
+Pukalan: IR sensors/ultrasonic input code (c++)
+Chloe: Turn input to outputs using fly brain (python)
+Michael: Turn outputs to motor commands (c++)
