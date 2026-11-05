@@ -13,12 +13,11 @@
     ESP32 -> laptop: S,distance_cm,left_ir,right_ir
     Laptop -> ESP32: F, L, R, S
 */
+//HCSR04 pins
+const int TRIG_PIN = 5;  //INPUT
+const int ECHO_PIN = 18; //OUTPUT
 
-const int TRIG_PIN = 5;
-const int ECHO_PIN = 18;
-const int IR_LEFT_PIN = 32;
-const int IR_RIGHT_PIN = 33;
-
+//DRV8833 input pins
 const int AIN1 = 25;
 const int AIN2 = 26;
 const int BIN1 = 27;
